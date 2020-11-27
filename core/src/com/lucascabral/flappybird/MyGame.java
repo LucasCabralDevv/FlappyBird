@@ -6,6 +6,10 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Circle;
+import com.badlogic.gdx.math.Intersector;
+import com.badlogic.gdx.math.Rectangle;
 
 import java.util.Random;
 
@@ -17,6 +21,12 @@ public class MyGame extends ApplicationAdapter {
     private Texture fundo;
     private Texture canoBaixo;
     private Texture canoTopo;
+
+    //Formas para colisão
+    private ShapeRenderer shapeRenderer;
+    private Circle circlePassaro;
+    private Rectangle retanguloCanoTopo;
+    private Rectangle retanguloCanoBaixo;
 
     //Atributos de configurações
     private float larguraDispositivo;
@@ -47,12 +57,13 @@ public class MyGame extends ApplicationAdapter {
         verificaEstadoJogo();
         validarPontos();
         desenharTexturas();
+        detectarColisoes();
     }
 
     private void verificaEstadoJogo() {
 
         // Aplica movimento aos canos
-        posicaoXCano -= Gdx.graphics.getDeltaTime() * 150;
+        posicaoXCano -= Gdx.graphics.getDeltaTime() * 250;
         if (posicaoXCano < - canoBaixo.getWidth()){
             posicaoXCano = larguraDispositivo;
             posicaoYCano = random.nextInt(1400) - 700;
@@ -62,7 +73,7 @@ public class MyGame extends ApplicationAdapter {
         // Aplica evento de click na tela
         boolean toqueTela = Gdx.input.justTouched();
         if (toqueTela) {
-            gravidade = -18;
+            gravidade = -17;
         }
 
         // Aplicar gravidade
@@ -76,6 +87,58 @@ public class MyGame extends ApplicationAdapter {
             variacao = 0;
 
         gravidade++;
+    }
+
+    private void detectarColisoes(){
+
+
+        circlePassaro.set(
+                45 + passaros[0].getWidth() / 2,
+                posicaoInicialYPassaro + passaros[0].getHeight()/2,
+                passaros[0].getWidth() / 2
+        );
+
+        retanguloCanoBaixo.set(
+                posicaoXCano,
+                alturaDispositivo / 2 - canoBaixo.getHeight() - espacoEntreCanos / 2 + posicaoYCano,
+                canoBaixo.getWidth(), canoBaixo.getHeight());
+
+        retanguloCanoTopo.set(
+                posicaoXCano,
+                alturaDispositivo / 2 + espacoEntreCanos / 2 + posicaoYCano,
+                canoTopo.getWidth(), canoTopo.getHeight()
+        );
+
+        boolean colidiuCanoCima = Intersector.overlaps(circlePassaro, retanguloCanoTopo);
+        boolean colidiuCanoBaixo = Intersector.overlaps(circlePassaro, retanguloCanoBaixo);
+
+        if (colidiuCanoBaixo || colidiuCanoCima){
+
+            Gdx.app.log("Log", "colidiu");
+        }
+
+        /* shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(Color.RED);
+
+        // Circulo Pássaro
+        shapeRenderer.circle(45 + passaros[0].getWidth() / 2,
+                posicaoInicialYPassaro + passaros[0].getHeight()/2,
+                passaros[0].getWidth() / 2);
+
+        // Cano Topo
+        shapeRenderer.rect(
+                posicaoXCano,
+                alturaDispositivo / 2 + espacoEntreCanos / 2 + posicaoYCano,
+                canoTopo.getWidth(), canoTopo.getHeight()
+                );
+        // Cano Baixo
+        shapeRenderer.rect(
+                posicaoXCano,
+                alturaDispositivo / 2 - canoBaixo.getHeight() - espacoEntreCanos / 2 + posicaoYCano,
+                canoBaixo.getWidth(), canoBaixo.getHeight()
+        );
+
+        shapeRenderer.end(); */
     }
 
     private void desenharTexturas() {
@@ -126,6 +189,12 @@ public class MyGame extends ApplicationAdapter {
         textoPontuacao = new BitmapFont();
         textoPontuacao.setColor(Color.WHITE);
         textoPontuacao.getData().setScale(10);
+
+        // Formas geométricas para colisões
+        circlePassaro = new Circle();
+        retanguloCanoBaixo = new Rectangle();
+        retanguloCanoTopo = new Rectangle();
+        shapeRenderer = new ShapeRenderer();
     }
 
     @Override
